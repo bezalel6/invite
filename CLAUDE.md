@@ -81,7 +81,34 @@ For detailed testing instructions, see `SOCIAL_PREVIEW_TESTING.md`.
 - Database: `https://invites-75e19-default-rtdb.firebaseio.com`
 - No authentication required (public read/write)
 - Invitations stored at `/invites/{id}`
+- Default template settings stored at `/settings/defaultTemplate`
+- Protected fields configuration at `/settings/protectedFields`
 - ID generation uses content hashing for deduplication
+
+### Admin Management
+
+The application uses a simple, secure approach for managing defaults:
+
+- **No authentication code** in the application
+- **Firebase console access** for administrators to modify settings directly
+- **Automatic fallbacks** to hardcoded defaults if Firebase settings don't exist
+- **Real-time updates** - changes in Firebase take effect immediately
+
+Default template structure:
+```json
+{
+  "settings": {
+    "defaultTemplate": {
+      "fields": [...],
+      "lastUpdatedBy": "admin@example.com", 
+      "lastUpdatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "protectedFields": ["title", "subtitle", "event", "footer"]
+  }
+}
+```
+
+For detailed admin instructions, see `FIREBASE_ADMIN_GUIDE.md`.
 
 ## Critical Implementation Details
 

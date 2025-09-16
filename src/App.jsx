@@ -4,7 +4,6 @@ import LandingPage from './components/LandingPage'
 import InvitationEditor from './components/InvitationEditor'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import NotFound from './components/NotFound'
-import AdminPanel from './components/AdminPanel'
 import { ThemeProvider } from './contexts/ThemeContext'
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/create" element={<InvitationEditor />} />
             <Route path="/invite/:id" element={<InvitationEditor />} />
-            <Route path="/admin" element={<AdminPanel />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/404/:reason?" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
