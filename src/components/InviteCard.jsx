@@ -6,15 +6,14 @@ import './InviteCard.css'
 
 const FIREBASE_URL = 'https://invites-75e19-default-rtdb.firebaseio.com'
 
-// A more flexible initial state for a new, empty invitation form
 const createInitialFields = () => ({
   title: { value: 'You are Cordially Invited' },
   subtitle: { value: 'To attend' },
-  event: { value: '', placeholder: 'Event Name' },
-  location: { value: '', label: 'Location', placeholder: 'Venue/Address' },
-  date: { value: '', label: 'Date', placeholder: 'Day, Month Date, Year' },
-  time: { value: '', label: 'Time', placeholder: 'Start Time - End Time' },
-  footer: { value: '', placeholder: 'Additional Information' }
+  event: { value: '', placeholder: '[Event Name]' },
+  location: { value: '', label: 'Location:', placeholder: '[Venue/Address]' },
+  date: { value: '', label: 'Date:', placeholder: '[Day, Month Date, Year]' },
+  time: { value: '', label: 'Time:', placeholder: '[Start Time - End Time]' },
+  footer: { value: '', placeholder: '[Additional Information]' }
 })
 
 function InviteCard() {
@@ -106,73 +105,187 @@ function InviteCard() {
     }))
   }
 
-  const renderEditable = (fieldKey, className, isLabel = false) => {
+  const renderEditableText = (fieldKey, className, part = 'value') => {
     const field = fields[fieldKey]
-    const part = isLabel ? 'label' : 'value'
     
     if (isEditable) {
       return (
         <input
           type="text"
-          className={className}
+          className={`editable-${className}`}
           value={field[part]}
-          placeholder={field.placeholder || field.label}
+          placeholder={field.placeholder || field[part]}
           onChange={(e) => handleFieldChange(fieldKey, part, e.target.value)}
         />
       )
     }
+    
+    // For non-editable mode, don't show labels that are empty
+    if (part === 'label' && !field[part]) return null
+    
     return <span className={className}>{field[part]}</span>
   }
 
+  const renderEditableHighlight = (fieldKey) => {
+    const field = fields[fieldKey]
+    
+    if (isEditable) {
+      return (
+        <input
+          type="text"
+          className="highlight"
+          value={field.value}
+          placeholder={field.placeholder}
+          onChange={(e) => handleFieldChange(fieldKey, 'value', e.target.value)}
+        />
+      )
+    }
+    return <span className="highlight">{field.value}</span>
+  }
+
   if (loading) {
-    return <div className="card"><div className="skeleton skeleton-event" /></div>
+    return (
+      <div className="card">
+        <h1 className="title">You are Cordially Invited</h1>
+        <p className="subtitle">To attend</p>
+        <div className="skeleton skeleton-event"></div>
+        <div className="details">
+          <div className="skeleton skeleton-location"></div>
+          <div className="skeleton skeleton-date"></div>
+          <div className="skeleton skeleton-time"></div>
+        </div>
+        <div className="skeleton skeleton-footer"></div>
+      </div>
+    )
   }
 
   return (
     <>
-      <Helmet>
-        <title>Invitation: {fields.event.value || 'Create New'}</title>
-      </Helmet>
+      {id && fields.event.value && (
+        <Helmet>
+          <title>Invitation: {fields.event.value}</title>
+          <meta property="og:title" content={`Invitation: ${fields.event.value}`} />
+          <meta property="og:description" content={`${fields.date.value} at ${fields.time.value} - ${fields.location.value}`} />
+          <meta property="twitter:title" content={`Invitation: ${fields.event.value}`} />
+          <meta property="twitter:description" content={`${fields.date.value} at ${fields.time.value}`} />
+        </Helmet>
+      )}
       
       <div className="card">
-        {renderEditable('title', 'title')}
-        {renderEditable('subtitle', 'subtitle')}
+        {isEditable ? (
+          <h1 className="title">
+            <input
+              type="text"
+              className="editable-title"
+              value={fields.title.value}
+              placeholder={fields.title.placeholder || 'You are Cordially Invited'}
+              onChange={(e) => handleFieldChange('title', 'value', e.target.value)}
+              style={{ display: 'block' }}
+            />
+          </h1>
+        ) : (
+          <h1 className="title">{fields.title.value}</h1>
+        )}
         
-        <div className="event">
-          {renderEditable('event', 'highlight')}
-        </div>
+        {isEditable ? (
+          <p className="subtitle">
+            <input
+              type="text"
+              className="editable-subtitle"
+              value={fields.subtitle.value}
+              placeholder={fields.subtitle.placeholder || 'To attend'}
+              onChange={(e) => handleFieldChange('subtitle', 'value', e.target.value)}
+              style={{ display: 'block' }}
+            />
+          </p>
+        ) : (
+          <p className="subtitle">{fields.subtitle.value}</p>
+        )}
+        
+        <p className="event">
+          {renderEditableHighlight('event')}
+        </p>
 
         <div className="details">
-          <div className="detail-row">
-            {renderEditable('location', 'label', true)}
-            {renderEditable('location', 'highlight')}
-          </div>
-          <div className="detail-row">
-            {renderEditable('date', 'label', true)}
-            {renderEditable('date', 'highlight')}
-          </div>
-          <div className="detail-row">
-            {renderEditable('time', 'label', true)}
-            {renderEditable('time', 'highlight')}
-          </div>
+          <span>
+            {isEditable ? (
+              <>
+                <input
+                  type="text"
+                  className="editable-label"
+                  value={fields.location.label}
+                  onChange={(e) => handleFieldChange('location', 'label', e.target.value)}
+                  style={{ width: 'auto', display: 'inline' }}
+                />
+                {' '}
+                {renderEditableHighlight('location')}
+              </>
+            ) : (
+              <>
+                {fields.location.label} {renderEditableHighlight('location')}
+              </>
+            )}
+          </span>
+          
+          <span>
+            {isEditable ? (
+              <>
+                <input
+                  type="text"
+                  className="editable-label"
+                  value={fields.date.label}
+                  onChange={(e) => handleFieldChange('date', 'label', e.target.value)}
+                  style={{ width: 'auto', display: 'inline' }}
+                />
+                {' '}
+                {renderEditableHighlight('date')}
+              </>
+            ) : (
+              <>
+                {fields.date.label} {renderEditableHighlight('date')}
+              </>
+            )}
+          </span>
+          
+          <span>
+            {isEditable ? (
+              <>
+                <input
+                  type="text"
+                  className="editable-label"
+                  value={fields.time.label}
+                  onChange={(e) => handleFieldChange('time', 'label', e.target.value)}
+                  style={{ width: 'auto', display: 'inline' }}
+                />
+                {' '}
+                {renderEditableHighlight('time')}
+              </>
+            ) : (
+              <>
+                {fields.time.label} {renderEditableHighlight('time')}
+              </>
+            )}
+          </span>
         </div>
 
-        <div className="footer">
-          {renderEditable('footer', 'highlight')}
-        </div>
+        <p className="footer">
+          {renderEditableHighlight('footer')}
+        </p>
       </div>
 
       {isEditable && !id && (
         <button className="share-btn" onClick={handleShare} disabled={sharing}>
-          {sharing ? 'Creating...' : 'Generate Share Link'}
+          {sharing ? 'Creating invitation...' : 'Generate Share Link'}
         </button>
       )}
 
       {!isEditable && id && (
-        <a href="/" className="create-btn">Create Your Own</a>
+        <a href="/" className="create-btn">
+          Create Your Own Invitation
+        </a>
       )}
 
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </>
   )
 }
