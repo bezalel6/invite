@@ -1,18 +1,19 @@
 // Vercel Edge Function for generating Open Graph meta tags
 export default async function handler(req, res) {
   const { id } = req.query;
+  const userAgent = req.headers['user-agent'] || '';
   
   // Check if this is a crawler request
-  const userAgent = req.headers['user-agent'] || '';
   const isBot = /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot/i.test(userAgent);
   
-  // If not a bot, let the React app handle it
+  // For non-bot requests without ID or non-bot requests in general,
+  // we should NOT handle them here - let Vercel's rewrite rules handle the React app
   if (!isBot) {
-    // Return the React app's index.html for client-side routing
-    return res.rewrite('/index.html');
+    // Return 404 so Vercel's rewrite rule kicks in
+    return res.status(404).send('Not found');
   }
   
-  // If no ID, return error
+  // If no ID for a bot, return error
   if (!id) {
     return res.status(400).send('Invalid invitation URL');
   }
@@ -112,8 +113,6 @@ export default async function handler(req, res) {
     <!-- Additional Tags -->
     <meta property="og:updated_time" content="${data.createdAt || new Date().toISOString()}" />
     <link rel="canonical" href="${pageUrl}" />
-    
-    <!-- This page is only served to crawlers -->
     
     <style>
       body {

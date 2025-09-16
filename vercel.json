@@ -1,12 +1,14 @@
 {
-  "functions": {
-    "api/og.js": {
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/invite/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot).*"
+        }
+      ],
       "destination": "/api/og?id=:id"
     },
     {
