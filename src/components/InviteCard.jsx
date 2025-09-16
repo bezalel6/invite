@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import Toast from './Toast'
 import './InviteCard.css'
 
@@ -8,19 +9,27 @@ const FIREBASE_URL = 'https://invites-75e19-default-rtdb.firebaseio.com'
 function InviteCard() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(!!id)
+  const [loading, setLoading] = useState(!!id && !window.__INVITE_DATA__)
   const [toast, setToast] = useState(null)
-  const [fields, setFields] = useState({
-    event: '',
-    location: '',
-    date: '',
-    time: '',
-    footer: ''
+  const [fields, setFields] = useState(() => {
+    // Check if data was preloaded by server
+    if (window.__INVITE_DATA__) {
+      const data = window.__INVITE_DATA__
+      delete window.__INVITE_DATA__
+      return data
+    }
+    return {
+      event: '',
+      location: '',
+      date: '',
+      time: '',
+      footer: ''
+    }
   })
   const [isEditable, setIsEditable] = useState(!id)
 
   useEffect(() => {
-    if (id) {
+    if (id && !fields.event) {
       fetchInvite(id)
     }
   }, [id])
@@ -94,6 +103,16 @@ function InviteCard() {
 
   return (
     <>
+      {id && fields.event && (
+        <Helmet>
+          <title>Invitation: {fields.event}</title>
+          <meta property="og:title" content={`Invitation: ${fields.event}`} />
+          <meta property="og:description" content={`${fields.date} at ${fields.time} - ${fields.location}`} />
+          <meta property="twitter:title" content={`Invitation: ${fields.event}`} />
+          <meta property="twitter:description" content={`${fields.date} at ${fields.time}`} />
+        </Helmet>
+      )}
+      
       <div className="card">
         <h1 className="title">You are Cordially Invited</h1>
         <p className="subtitle">To attend</p>
