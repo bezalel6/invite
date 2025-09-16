@@ -131,7 +131,7 @@ export default async function handler(req, res) {
     }
     
     const pageUrl = `https://${req.headers.host}/invite/${id}`;
-    const imageUrl = `https://${req.headers.host}/invitation-preview.png`;
+    const imageUrl = `https://${req.headers.host}/og-image.png`;
     
     // Generate the HTML with proper meta tags
     const html = `<!DOCTYPE html>
@@ -152,7 +152,7 @@ export default async function handler(req, res) {
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:image" content="${imageUrl}" />
     <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:site_name" content="Invites" />
     <meta property="og:locale" content="en_US" />
