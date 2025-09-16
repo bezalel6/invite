@@ -6,14 +6,15 @@ export default async function handler(req, res) {
   const userAgent = req.headers['user-agent'] || '';
   const isBot = /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot/i.test(userAgent);
   
-  // If not a bot and we have an ID, redirect to the React app
-  if (!isBot && id) {
-    return res.redirect(301, `/#/invite/${id}`);
+  // If not a bot, let the React app handle it
+  if (!isBot) {
+    // Return the React app's index.html for client-side routing
+    return res.rewrite('/index.html');
   }
   
-  // If no ID, serve the default page
+  // If no ID, return error
   if (!id) {
-    return res.redirect(301, '/');
+    return res.status(400).send('Invalid invitation URL');
   }
   
   try {
@@ -112,13 +113,7 @@ export default async function handler(req, res) {
     <meta property="og:updated_time" content="${data.createdAt || new Date().toISOString()}" />
     <link rel="canonical" href="${pageUrl}" />
     
-    <!-- Redirect for non-crawlers with JavaScript -->
-    <script>
-      // If JavaScript is enabled (human visitor), redirect to React app
-      if (!window.location.hash) {
-        window.location.href = '/#/invite/${id}';
-      }
-    </script>
+    <!-- This page is only served to crawlers -->
     
     <style>
       body {
@@ -179,17 +174,9 @@ export default async function handler(req, res) {
     <meta property="og:description" content="You have received a special invitation. Click to view details." />
     <meta property="og:image" content="https://${req.headers.host}/logo_512x512.png" />
     <meta property="og:url" content="https://${req.headers.host}/" />
-    <script>
-      if (window.location.pathname.includes('/invite/')) {
-        const id = window.location.pathname.split('/invite/')[1];
-        window.location.href = '/#/invite/' + id;
-      }
-    </script>
 </head>
 <body>
-    <script>
-      window.location.href = '/';
-    </script>
+    <p>Invitation not found</p>
 </body>
 </html>`;
     

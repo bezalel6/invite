@@ -8,15 +8,15 @@ A React-based invitation creation and sharing application that allows users to c
 
 ## Architecture
 
-### Dual Routing System
-The app uses a hybrid routing approach to solve social media preview challenges:
-- **Hash routing (`/#/invite/id`)**: Used internally by React Router for SPA navigation
-- **Path routing (`/invite/id`)**: Used for social media sharing, handled by Vercel Edge Functions
+### Routing System
+The app uses path-based routing (`/invite/id`) with BrowserRouter for all navigation:
+- **Client-side routing**: BrowserRouter handles all navigation
+- **Server-side handling**: Vercel Edge Functions detect crawlers and serve appropriate content
 
 ### Key Components
 
 **Frontend (React SPA)**
-- `src/App.jsx`: Main app using HashRouter for client-side routing
+- `src/App.jsx`: Main app using BrowserRouter for client-side routing
 - `src/components/InviteCard.jsx`: Core component handling invitation display/editing with complex state management for editable fields (object structure with `value`, `label`, and `placeholder` properties)
 - Firebase integration for data persistence using REST API directly (no SDK)
 
@@ -25,7 +25,7 @@ The app uses a hybrid routing approach to solve social media preview challenges:
   - Detects crawler user agents (Facebook, Twitter, LinkedIn, etc.)
   - Fetches invitation data from Firebase server-side
   - Generates proper Open Graph and Twitter Card meta tags
-  - Redirects human visitors to hash-based routes
+  - Serves React app for human visitors via rewrite
 
 ### Data Structure
 Invitations are stored with nested object fields:
@@ -91,21 +91,20 @@ All text elements (including title, subtitle, and labels) are editable in create
 - View mode: Renders standard HTML elements
 - CSS classes handle the seamless transition between states
 
-### Social Media Preview Fix
-The app originally failed social media previews because crawlers don't execute JavaScript. Solution:
+### Social Media Preview Implementation
+Social media crawlers don't execute JavaScript, so:
 - Vercel Edge Function intercepts crawler requests
 - Fetches data server-side and generates static HTML with meta tags
-- Human visitors get redirected to the React SPA
+- Human visitors get the React SPA via rewrite
 
-### URL Sharing
-When generating share links:
-- Copy to clipboard uses path-based URL (`/invite/id`)
-- Navigation uses hash-based URL (`/#/invite/id`)
-- Both formats work but only path-based URLs generate proper previews
+### URL Structure
+All URLs use path-based routing (`/invite/id`):
+- No hash routing anywhere in the application
+- Consistent URL format for sharing and navigation
+- Full SPA functionality with BrowserRouter
 
 ## Known Edge Cases
 
 1. **Empty Fields**: The Edge Function handles both old format (plain strings) and new format (objects with value property)
 2. **Special Characters**: HTML escaping is implemented in the Edge Function to prevent XSS
 3. **Cache Busting**: Social platforms cache aggressively - use query params (`?v=2`) to force refresh
-4. **Backward Compatibility**: Old hash-based links still work via JavaScript redirect
