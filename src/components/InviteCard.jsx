@@ -75,8 +75,8 @@ function InviteCard() {
           const shareUrl = `${window.location.origin}/#/invite/${id}`
           await navigator.clipboard.writeText(shareUrl)
           
-          // Navigate immediately
-          window.location.href = shareUrl
+          // Navigate using React Router
+          navigate(`/invite/${id}`)
           return
         }
       }
@@ -95,8 +95,8 @@ function InviteCard() {
         const shareUrl = `${window.location.origin}/#/invite/${id}`
         await navigator.clipboard.writeText(shareUrl)
         
-        // Navigate immediately with hard reload
-        window.location.href = shareUrl
+        // Navigate using React Router
+        navigate(`/invite/${id}`)
       }
     } catch (error) {
       setToast({ message: 'Failed to create invitation', type: 'error' })
