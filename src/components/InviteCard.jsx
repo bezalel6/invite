@@ -74,12 +74,9 @@ function InviteCard() {
           // Reuse existing invitation
           const shareUrl = `${window.location.origin}/#/invite/${id}`
           await navigator.clipboard.writeText(shareUrl)
-          setToast({ message: 'Link copied! (Using existing invitation)', type: 'success' })
           
-          // Wait a bit to show the success message before navigating
-          setTimeout(() => {
-            navigate(`/invite/${id}`)
-          }, 1500)
+          // Navigate immediately
+          window.location.href = shareUrl
           return
         }
       }
@@ -97,12 +94,9 @@ function InviteCard() {
       if (response.ok) {
         const shareUrl = `${window.location.origin}/#/invite/${id}`
         await navigator.clipboard.writeText(shareUrl)
-        setToast({ message: 'Link copied to clipboard!', type: 'success' })
         
-        // Wait for user to see the success message
-        setTimeout(() => {
-          navigate(`/invite/${id}`)
-        }, 1500)
+        // Navigate immediately with hard reload
+        window.location.href = shareUrl
       }
     } catch (error) {
       setToast({ message: 'Failed to create invitation', type: 'error' })
