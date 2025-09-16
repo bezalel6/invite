@@ -1,0 +1,65 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  padding: 12px 20px;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.app-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.github-link {
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.github-link:hover {
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    padding: 10px 15px;
+  }
+  
+  .logo {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .app-name {
+    font-size: 18px;
+  }
+}
