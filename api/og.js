@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     <meta name="description" content="This invitation doesn't exist or may have been removed." />
     <meta property="og:title" content="Invitation Not Found" />
     <meta property="og:description" content="This invitation doesn't exist or may have been removed." />
-    <meta property="og:image" content="https://${req.headers.host}/logo_512x512.png" />
+    <meta property="og:image" content="https://${req.headers.host}/invitation-preview.png" />
     <meta property="og:url" content="https://${req.headers.host}/invite/${id}" />
 </head>
 <body>
@@ -64,7 +64,10 @@ export default async function handler(req, res) {
         .replace(/'/g, '&#39;');
     };
     
-    // Handle both old format (simple strings) and new format (objects with value property)
+    // Handle both old format and new format with fields array
+    let fields = data.fields || [];
+    
+    // Helper to get field value
     const getFieldValue = (field) => {
       if (!field) return '';
       if (typeof field === 'string') return field;
@@ -72,46 +75,54 @@ export default async function handler(req, res) {
       return '';
     };
     
-    const title = getFieldValue(data.title) || 'You are Cordially Invited';
-    const event = getFieldValue(data.event) || 'Special Event';
-    const from = getFieldValue(data.from) || '';
-    const location = getFieldValue(data.location) || '';
-    const date = getFieldValue(data.date) || '';
-    const time = getFieldValue(data.time) || '';
-    const footer = getFieldValue(data.footer) || '';
-    
-    // Build more specific description based on available fields
-    let description = '';
-    
-    // Add event name
-    if (event && event !== 'Special Event') {
-      description = event;
+    // If data is in old format, convert it
+    if (fields.length === 0) {
+      // Old format - build fields array from direct properties
+      const oldEvent = getFieldValue(data.event);
+      const oldFrom = getFieldValue(data.from);
+      const oldLocation = getFieldValue(data.location);
+      const oldDate = getFieldValue(data.date);
+      const oldTime = getFieldValue(data.time);
+      
+      fields = [
+        { id: 'event', value: oldEvent, visible: true },
+        { id: 'from', value: oldFrom, visible: !!oldFrom },
+        { id: 'location', value: oldLocation, visible: !!oldLocation },
+        { id: 'date', value: oldDate, visible: !!oldDate },
+        { id: 'time', value: oldTime, visible: !!oldTime }
+      ];
     }
     
-    // Add from information if available
+    // Extract values from fields array
+    const getFieldById = (id) => {
+      const field = fields.find(f => f.id === id && f.visible !== false);
+      return field?.value || '';
+    };
+    
+    const event = getFieldById('event') || 'an event';
+    const from = getFieldById('from');
+    const location = getFieldById('location');
+    const date = getFieldById('date');
+    const time = getFieldById('time');
+    
+    // Build title and description
+    const title = "You've got mail";
+    let description = `You received an invitation to ${event}`;
+    
+    // Add more details to description if available
     if (from) {
-      description = description ? `${description} - From ${from}` : `From ${from}`;
+      description += ` from ${from}`;
     }
-    
-    // Add date and time
     if (date || time) {
-      const dateTime = date + (time ? ` at ${time}` : '');
-      description = description ? `${description} | ${dateTime}` : dateTime;
+      const when = [];
+      if (date) when.push(date);
+      if (time) when.push(`at ${time}`);
+      if (when.length > 0) {
+        description += ` • ${when.join(' ')}`;
+      }
     }
-    
-    // Add location
     if (location) {
-      description = description ? `${description} | ${location}` : location;
-    }
-    
-    // Add footer if there's room
-    if (footer && description.length + footer.length < 150) {
-      description = description ? `${description}. ${footer}` : footer;
-    }
-    
-    // Ensure we have a description
-    if (!description) {
-      description = 'You are invited to a special event. Click to view details.';
+      description += ` • ${location}`;
     }
     
     // Truncate description for social media limits
@@ -120,7 +131,7 @@ export default async function handler(req, res) {
     }
     
     const pageUrl = `https://${req.headers.host}/invite/${id}`;
-    const imageUrl = `https://${req.headers.host}/logo_512x512.png`;
+    const imageUrl = `https://${req.headers.host}/invitation-preview.png`;
     
     // Generate the HTML with proper meta tags
     const html = `<!DOCTYPE html>
@@ -130,25 +141,25 @@ export default async function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     
     <!-- Primary Meta Tags -->
-    <title>${escapeHtml(event)} - Invitation</title>
-    <meta name="title" content="${escapeHtml(event)} - Invitation" />
+    <title>${escapeHtml(title)}</title>
+    <meta name="title" content="${escapeHtml(title)}" />
     <meta name="description" content="${escapeHtml(description)}" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${pageUrl}" />
-    <meta property="og:title" content="${escapeHtml(event)} - Invitation" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:image" content="${imageUrl}" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
-    <meta property="og:site_name" content="Invitation App" />
+    <meta property="og:site_name" content="Invites" />
     <meta property="og:locale" content="en_US" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="${pageUrl}" />
-    <meta name="twitter:title" content="${escapeHtml(event)} - Invitation" />
+    <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${imageUrl}" />
     
@@ -164,16 +175,16 @@ export default async function handler(req, res) {
         align-items: center;
         min-height: 100vh;
         margin: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #f9fafb;
       }
       .loading {
         text-align: center;
-        color: white;
+        color: #111827;
       }
       .spinner {
-        border: 3px solid rgba(255, 255, 255, 0.3);
+        border: 3px solid rgba(16, 185, 129, 0.2);
         border-radius: 50%;
-        border-top: 3px solid white;
+        border-top: 3px solid #10b981;
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
@@ -182,6 +193,15 @@ export default async function handler(req, res) {
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+      }
+      h2 {
+        color: #064e3b;
+        font-size: 2rem;
+        margin: 1rem 0;
+      }
+      p {
+        color: #6b7280;
+        margin: 0.5rem 0;
       }
     </style>
 </head>
@@ -210,11 +230,11 @@ export default async function handler(req, res) {
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>You're Invited!</title>
-    <meta name="description" content="You have received a special invitation. Click to view details." />
-    <meta property="og:title" content="You're Invited!" />
-    <meta property="og:description" content="You have received a special invitation. Click to view details." />
-    <meta property="og:image" content="https://${req.headers.host}/logo_512x512.png" />
+    <title>You've got mail</title>
+    <meta name="description" content="You received an invitation. Click to view details." />
+    <meta property="og:title" content="You've got mail" />
+    <meta property="og:description" content="You received an invitation. Click to view details." />
+    <meta property="og:image" content="https://${req.headers.host}/invitation-preview.png" />
     <meta property="og:url" content="https://${req.headers.host}/" />
 </head>
 <body>

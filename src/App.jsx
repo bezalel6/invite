@@ -1,20 +1,27 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import InviteCard from './components/InviteCard'
-import Header from './components/Header'
+import Layout from './components/Layout'
+import LandingPage from './components/LandingPage'
+import InvitationEditor from './components/InvitationEditor'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import NotFound from './components/NotFound'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 flex items-center justify-center p-8">
-        <Header />
-        <div className="pt-16 w-full">
+    <ThemeProvider>
+      <Router>
+        <Layout>
           <Routes>
-            <Route path="/" element={<InviteCard />} />
-            <Route path="/invite/:id" element={<InviteCard />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/create" element={<InvitationEditor />} />
+            <Route path="/invite/:id" element={<InvitationEditor />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/404/:reason?" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
-        </div>
-      </div>
-    </Router>
+        </Layout>
+      </Router>
+    </ThemeProvider>
   )
 }
 

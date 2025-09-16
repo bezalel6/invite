@@ -50,14 +50,16 @@ export const validateInvite = (data) => {
     const validated = InviteSchema.parse(data)
     return { success: true, data: validated }
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error && error.errors && Array.isArray(error.errors)) {
       const errors = error.errors.map(err => ({
-        field: err.path.join('.'),
-        message: err.message
+        field: err.path ? err.path.join('.') : 'unknown',
+        message: err.message || 'Validation failed'
       }))
       return { success: false, errors }
     }
-    return { success: false, errors: [{ field: 'unknown', message: 'Validation failed' }] }
+    // If error structure is different or missing, return a generic error
+    console.error('Validation error:', error)
+    return { success: false, errors: [{ field: 'unknown', message: error?.message || 'Validation failed' }] }
   }
 }
 
