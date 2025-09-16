@@ -54,10 +54,39 @@ function InviteCard() {
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
+  // Simple hash function for deduplication
+  const hashInvite = (data) => {
+    const str = `${data.event}|${data.location}|${data.date}|${data.time}|${data.footer}`
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36).substr(0, 9)
+  }
+
   const handleShare = async () => {
-    const id = generateId()
+    // Generate deterministic ID based on content
+    const id = hashInvite(fields)
     
     try {
+      // Check if this exact invite already exists
+      const checkResponse = await fetch(`${FIREBASE_URL}/invites/${id}.json`)
+      if (checkResponse.ok) {
+        const existingData = await checkResponse.json()
+        if (existingData) {
+          // Reuse existing invitation
+          const shareUrl = `${window.location.origin}/invite/${id}`
+          navigator.clipboard.writeText(shareUrl)
+          setToast({ message: 'Link copied! (Using existing invitation)', type: 'success' })
+          setIsEditable(false)
+          setTimeout(() => navigate(`/invite/${id}`), 2000)
+          return
+        }
+      }
+      
+      // Create new invitation if it doesn't exist
       const response = await fetch(`${FIREBASE_URL}/invites/${id}.json`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
