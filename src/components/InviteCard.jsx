@@ -89,7 +89,12 @@ function InviteCard() {
       })
       
       if (response.ok) {
-        await navigator.clipboard.writeText(`${window.location.origin}/#/invite/${id}`)
+        // Use path-based URL for better social media sharing
+        const shareUrl = `${window.location.origin}/invite/${id}`
+        await navigator.clipboard.writeText(shareUrl)
+        setToast({ message: 'Link copied to clipboard!', type: 'success' })
+        
+        // Navigate using hash routing for SPA
         navigate(`/invite/${id}`)
       }
     } catch (error) {
