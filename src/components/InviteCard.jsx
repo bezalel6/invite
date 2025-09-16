@@ -6,24 +6,34 @@ import './InviteCard.css'
 
 const FIREBASE_URL = 'https://invites-75e19-default-rtdb.firebaseio.com'
 
+// Initial state for a new, empty invitation form
+const createInitialFields = () => ({
+  event: { value: '', label: 'Event Name' },
+  location: { value: '', label: 'Location' },
+  date: { value: '', label: 'Date' },
+  time: { value: '', label: 'Time' },
+  footer: { value: '', label: 'Additional Information' }
+})
+
 function InviteCard() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(!!id)
   const [sharing, setSharing] = useState(false)
   const [toast, setToast] = useState(null)
-  const [fields, setFields] = useState({
-    event: '',
-    location: '',
-    date: '',
-    time: '',
-    footer: ''
-  })
+  const [fields, setFields] = useState(createInitialFields())
   const [isEditable, setIsEditable] = useState(!id)
 
   useEffect(() => {
     if (id) {
+      setLoading(true)
+      setIsEditable(false)
       fetchInvite(id)
+    } else {
+      // Reset state for the creation form
+      setFields(createInitialFields())
+      setIsEditable(true)
+      setLoading(false)
     }
   }, [id])
 
@@ -33,7 +43,19 @@ function InviteCard() {
       if (response.ok) {
         const data = await response.json()
         if (data) {
-          setFields(data)
+          // Backward compatibility for old string-based data
+          if (typeof data.event === 'string') {
+            const migratedFields = {
+              event: { value: data.event || '', label: 'Event Name' },
+              location: { value: data.location || '', label: 'Location' },
+              date: { value: data.date || '', label: 'Date' },
+              time: { value: data.time || '', label: 'Time' },
+              footer: { value: data.footer || '', label: 'Additional Information' }
+            }
+            setFields(migratedFields)
+          } else {
+            setFields(data)
+          }
         } else {
           setToast({ message: 'Invitation not found', type: 'error' })
         }
@@ -45,11 +67,12 @@ function InviteCard() {
     }
   }
 
-  const generateId = () => Math.random().toString(36).substr(2, 9)
-
   // Simple hash function for deduplication
   const hashInvite = (data) => {
-    const str = `${data.event}|${data.location}|${data.date}|${data.time}|${data.footer}`
+    const str = Object.values(data)
+      .map(field => `${field.label}|${field.value}`)
+      .join('|')
+      
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
@@ -61,27 +84,17 @@ function InviteCard() {
 
   const handleShare = async () => {
     setSharing(true)
-    
-    // Generate deterministic ID based on content
     const id = hashInvite(fields)
     
     try {
-      // Check if this exact invite already exists
       const checkResponse = await fetch(`${FIREBASE_URL}/invites/${id}.json`)
-      if (checkResponse.ok) {
-        const existingData = await checkResponse.json()
-        if (existingData) {
-          // Reuse existing invitation
-          const shareUrl = `${window.location.origin}/#/invite/${id}`
-          await navigator.clipboard.writeText(shareUrl)
-          
-          // Navigate using React Router
-          navigate(`/invite/${id}`)
-          return
-        }
+      if (checkResponse.ok && await checkResponse.json()) {
+        // Reuse existing invitation
+        navigate(`/invite/${id}`)
+        return
       }
       
-      // Create new invitation if it doesn't exist
+      // Create new invitation
       const response = await fetch(`${FIREBASE_URL}/invites/${id}.json`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -94,8 +107,6 @@ function InviteCard() {
       if (response.ok) {
         const shareUrl = `${window.location.origin}/#/invite/${id}`
         await navigator.clipboard.writeText(shareUrl)
-        
-        // Navigate using React Router
         navigate(`/invite/${id}`)
       }
     } catch (error) {
@@ -104,8 +115,11 @@ function InviteCard() {
     }
   }
 
-  const handleFieldChange = (field, value) => {
-    setFields(prev => ({ ...prev, [field]: value }))
+  const handleFieldChange = (field, part, value) => {
+    setFields(prev => ({
+      ...prev,
+      [field]: { ...prev[field], [part]: value }
+    }))
   }
 
   if (loading) {
@@ -126,13 +140,13 @@ function InviteCard() {
 
   return (
     <>
-      {id && fields.event && (
+      {id && fields.event?.value && (
         <Helmet>
-          <title>Invitation: {fields.event}</title>
-          <meta property="og:title" content={`Invitation: ${fields.event}`} />
-          <meta property="og:description" content={`${fields.date} at ${fields.time} - ${fields.location}`} />
-          <meta property="twitter:title" content={`Invitation: ${fields.event}`} />
-          <meta property="twitter:description" content={`${fields.date} at ${fields.time}`} />
+          <title>Invitation: {fields.event.value}</title>
+          <meta property="og:title" content={`Invitation: ${fields.event.value}`} />
+          <meta property="og:description" content={`${fields.date.value} at ${fields.time.value} - ${fields.location.value}`} />
+          <meta property="twitter:title" content={`Invitation: ${fields.event.value}`} />
+          <meta property="twitter:description" content={`${fields.date.value} at ${fields.time.value}`} />
         </Helmet>
       )}
       
@@ -145,51 +159,54 @@ function InviteCard() {
             <input
               type="text"
               className="highlight"
-              value={fields.event}
-              onChange={(e) => handleFieldChange('event', e.target.value)}
-              placeholder="[Event Name]"
+              value={fields.event.value}
+              onChange={(e) => handleFieldChange('event', 'value', e.target.value)}
+              placeholder={fields.event.label}
             />
           ) : (
-            <span className="highlight">{fields.event}</span>
+            <span className="highlight">{fields.event.value}</span>
           )}
         </p>
 
         <div className="details">
-          <span>Location: {isEditable ? (
-            <input
-              type="text"
-              className="highlight"
-              value={fields.location}
-              onChange={(e) => handleFieldChange('location', e.target.value)}
-              placeholder="[Venue/Address]"
-            />
-          ) : (
-            <span className="highlight">{fields.location}</span>
-          )}</span>
+          <span>
+            {isEditable ? (
+              <input type="text" className="highlight label-input" value={fields.location.label} onChange={(e) => handleFieldChange('location', 'label', e.target.value)} />
+            ) : (
+              <>{fields.location.label}: </>
+            )}
+            {isEditable ? (
+              <input type="text" className="highlight" value={fields.location.value} onChange={(e) => handleFieldChange('location', 'value', e.target.value)} placeholder="[Venue/Address]" />
+            ) : (
+              <span className="highlight">{fields.location.value}</span>
+            )}
+          </span>
           
-          <span>Date: {isEditable ? (
-            <input
-              type="text"
-              className="highlight"
-              value={fields.date}
-              onChange={(e) => handleFieldChange('date', e.target.value)}
-              placeholder="[Day, Month Date, Year]"
-            />
-          ) : (
-            <span className="highlight">{fields.date}</span>
-          )}</span>
+          <span>
+            {isEditable ? (
+              <input type="text" className="highlight label-input" value={fields.date.label} onChange={(e) => handleFieldChange('date', 'label', e.target.value)} />
+            ) : (
+              <>{fields.date.label}: </>
+            )}
+            {isEditable ? (
+              <input type="text" className="highlight" value={fields.date.value} onChange={(e) => handleFieldChange('date', 'value', e.target.value)} placeholder="[Day, Month Date, Year]" />
+            ) : (
+              <span className="highlight">{fields.date.value}</span>
+            )}
+          </span>
           
-          <span>Time: {isEditable ? (
-            <input
-              type="text"
-              className="highlight"
-              value={fields.time}
-              onChange={(e) => handleFieldChange('time', e.target.value)}
-              placeholder="[Start Time - End Time]"
-            />
-          ) : (
-            <span className="highlight">{fields.time}</span>
-          )}</span>
+          <span>
+            {isEditable ? (
+              <input type="text" className="highlight label-input" value={fields.time.label} onChange={(e) => handleFieldChange('time', 'label', e.target.value)} />
+            ) : (
+              <>{fields.time.label}: </>
+            )}
+            {isEditable ? (
+              <input type="text" className="highlight" value={fields.time.value} onChange={(e) => handleFieldChange('time', 'value', e.target.value)} placeholder="[Start Time - End Time]" />
+            ) : (
+              <span className="highlight">{fields.time.value}</span>
+            )}
+          </span>
         </div>
 
         <p className="footer">
@@ -197,12 +214,12 @@ function InviteCard() {
             <input
               type="text"
               className="highlight"
-              value={fields.footer}
-              onChange={(e) => handleFieldChange('footer', e.target.value)}
-              placeholder="[Additional Information]"
+              value={fields.footer.value}
+              onChange={(e) => handleFieldChange('footer', 'value', e.target.value)}
+              placeholder={fields.footer.label}
             />
           ) : (
-            <span className="highlight">{fields.footer}</span>
+            <span className="highlight">{fields.footer.value}</span>
           )}
         </p>
       </div>
