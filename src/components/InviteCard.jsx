@@ -69,7 +69,7 @@ function InviteCard() {
         const existingData = await checkResponse.json()
         if (existingData) {
           // Reuse existing invitation
-          const shareUrl = `${window.location.origin}/invite/${id}`
+          const shareUrl = `${window.location.origin}/#/invite/${id}`
           navigator.clipboard.writeText(shareUrl)
           setToast({ message: 'Link copied! (Using existing invitation)', type: 'success' })
           setIsEditable(false)
@@ -89,7 +89,7 @@ function InviteCard() {
       })
       
       if (response.ok) {
-        const shareUrl = `${window.location.origin}/invite/${id}`
+        const shareUrl = `${window.location.origin}/#/invite/${id}`
         navigator.clipboard.writeText(shareUrl)
         setToast({ message: 'Link copied to clipboard!', type: 'success' })
         
