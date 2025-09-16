@@ -9,27 +9,19 @@ const FIREBASE_URL = 'https://invites-75e19-default-rtdb.firebaseio.com'
 function InviteCard() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(!!id && !window.__INVITE_DATA__)
+  const [loading, setLoading] = useState(!!id)
   const [toast, setToast] = useState(null)
-  const [fields, setFields] = useState(() => {
-    // Check if data was preloaded by server
-    if (window.__INVITE_DATA__) {
-      const data = window.__INVITE_DATA__
-      delete window.__INVITE_DATA__
-      return data
-    }
-    return {
-      event: '',
-      location: '',
-      date: '',
-      time: '',
-      footer: ''
-    }
+  const [fields, setFields] = useState({
+    event: '',
+    location: '',
+    date: '',
+    time: '',
+    footer: ''
   })
   const [isEditable, setIsEditable] = useState(!id)
 
   useEffect(() => {
-    if (id && !fields.event) {
+    if (id) {
       fetchInvite(id)
     }
   }, [id])

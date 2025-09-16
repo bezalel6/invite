@@ -1,17 +1,10 @@
 {
   "functions": {
-    "api/invite/[id].js": {
-      "maxDuration": 10
-    },
     "api/og-image.js": {
       "maxDuration": 10
     }
   },
   "rewrites": [
-    {
-      "source": "/invite/:id",
-      "destination": "/api/invite/[id]"
-    },
     {
       "source": "/(.*)",
       "destination": "/"

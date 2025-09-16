@@ -22,6 +22,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Handle dynamic meta tags for invitations
+      const path = window.location.pathname;
+      if (path.startsWith('/invite/')) {
+        const id = path.split('/')[2];
+        // Meta tags will be updated by React Helmet after app loads
+        document.title = 'Loading invitation...';
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
