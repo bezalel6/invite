@@ -182,3 +182,35 @@ input.highlight::placeholder {
 .toast.error {
   background: #f44336;
 }
+
+/* Styles for editable labels to make them look like plain text */
+.label-input {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0;
+  font-weight: normal !important;
+  text-align: right !important;
+  width: auto;
+  display: inline;
+  outline: none;
+  color: #444;
+  margin-right: 4px; /* Space before the value */
+}
+
+.label-input:focus {
+  box-shadow: 0 1px 0 #4CAF50; /* Underline on focus */
+}
+
+/* Add colon after the label input */
+.details span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.label-input::after {
+  content: ":";
+  position: absolute;
+  margin-left: 2px;
+}
