@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   const userAgent = req.headers['user-agent'] || '';
   
   // Check if this is a crawler request
-  const isBot = /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot|Pinterest|Pinterestbot|redditbot|Googlebot|bingbot|Slurp|DuckDuckBot|baiduspider|yandex|facebookcatalog|Applebot/i.test(userAgent);
+  const isBot = /bot|crawler|spider|scraper|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot|Pinterest|redditbot|Googlebot|bingbot|Slurp|DuckDuckBot|baiduspider|yandex|facebookcatalog|Applebot|facebook|twitter|linkedin|discord|slack|telegram/i.test(userAgent);
   
   // For non-bot requests without ID or non-bot requests in general,
   // we should NOT handle them here - let Vercel's rewrite rules handle the React app
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     <meta name="description" content="This invitation doesn't exist or may have been removed." />
     <meta property="og:title" content="Invitation Not Found" />
     <meta property="og:description" content="This invitation doesn't exist or may have been removed." />
-    <meta property="og:image" content="https://${req.headers.host}/invitation-preview.png" />
+    <meta property="og:image" content="https://${req.headers.host}/og-image.png" />
     <meta property="og:url" content="https://${req.headers.host}/invite/${id}" />
 </head>
 <body>
@@ -237,7 +237,7 @@ export default async function handler(req, res) {
     <meta name="description" content="You received an invitation. Click to view details." />
     <meta property="og:title" content="You've got mail" />
     <meta property="og:description" content="You received an invitation. Click to view details." />
-    <meta property="og:image" content="https://${req.headers.host}/invitation-preview.png" />
+    <meta property="og:image" content="https://${req.headers.host}/og-image.png" />
     <meta property="og:url" content="https://${req.headers.host}/" />
 </head>
 <body>

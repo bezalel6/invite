@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot|Pinterest|Pinterestbot|redditbot|Googlebot|bingbot|Slurp|DuckDuckBot|baiduspider|yandex|facebookcatalog|Applebot|Twitterbot|Whatsapp).*"
+          "value": ".*(bot|crawler|spider|scraper|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot|Pinterest|redditbot|Googlebot|bingbot|Slurp|DuckDuckBot|baiduspider|yandex|facebookcatalog|Applebot|facebook|twitter|linkedin|discord|slack|telegram).*"
         }
       ],
       "destination": "/api/og?id=:id"
