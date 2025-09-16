@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   const userAgent = req.headers['user-agent'] || '';
   
   // Check if this is a crawler request
-  const isBot = /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot/i.test(userAgent);
+  const isBot = /facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|Discordbot|TelegramBot|Pinterest|Pinterestbot|redditbot|Googlebot|bingbot|Slurp|DuckDuckBot|baiduspider|yandex|facebookcatalog|Applebot/i.test(userAgent);
   
   // For non-bot requests without ID or non-bot requests in general,
   // we should NOT handle them here - let Vercel's rewrite rules handle the React app
@@ -151,13 +151,16 @@ export default async function handler(req, res) {
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:image" content="${imageUrl}" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:site_name" content="Invites" />
     <meta property="og:locale" content="en_US" />
     
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="${escapeHtml(title)}" />
+    <meta property="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:url" content="${pageUrl}" />
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
