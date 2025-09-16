@@ -10,6 +10,7 @@ function InviteCard() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(!!id)
+  const [sharing, setSharing] = useState(false)
   const [toast, setToast] = useState(null)
   const [fields, setFields] = useState({
     event: '',
@@ -59,6 +60,8 @@ function InviteCard() {
   }
 
   const handleShare = async () => {
+    setSharing(true)
+    
     // Generate deterministic ID based on content
     const id = hashInvite(fields)
     
@@ -70,10 +73,13 @@ function InviteCard() {
         if (existingData) {
           // Reuse existing invitation
           const shareUrl = `${window.location.origin}/#/invite/${id}`
-          navigator.clipboard.writeText(shareUrl)
+          await navigator.clipboard.writeText(shareUrl)
           setToast({ message: 'Link copied! (Using existing invitation)', type: 'success' })
-          setIsEditable(false)
-          setTimeout(() => navigate(`/invite/${id}`), 2000)
+          
+          // Wait a bit to show the success message before navigating
+          setTimeout(() => {
+            navigate(`/invite/${id}`)
+          }, 1500)
           return
         }
       }
@@ -90,15 +96,17 @@ function InviteCard() {
       
       if (response.ok) {
         const shareUrl = `${window.location.origin}/#/invite/${id}`
-        navigator.clipboard.writeText(shareUrl)
+        await navigator.clipboard.writeText(shareUrl)
         setToast({ message: 'Link copied to clipboard!', type: 'success' })
         
-        // Show the URL in a modal or input field
-        setIsEditable(false)
-        setTimeout(() => navigate(`/invite/${id}`), 2000)
+        // Wait for user to see the success message
+        setTimeout(() => {
+          navigate(`/invite/${id}`)
+        }, 1500)
       }
     } catch (error) {
       setToast({ message: 'Failed to create invitation', type: 'error' })
+      setSharing(false)
     }
   }
 
@@ -206,8 +214,8 @@ function InviteCard() {
       </div>
 
       {isEditable && !id && (
-        <button className="share-btn" onClick={handleShare}>
-          Generate Share Link
+        <button className="share-btn" onClick={handleShare} disabled={sharing}>
+          {sharing ? 'Creating invitation...' : 'Generate Share Link'}
         </button>
       )}
 
