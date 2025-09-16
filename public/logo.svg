@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Group for scaling and centering -->
+  <g transform="scale(0.9) translate(28.44, 28.44)">
+    <!-- Envelope Body: A dark grey rectangle -->
+    <path d="M104 160H408V352H104V160Z" fill="#333333"/>
+
+    <!-- Envelope Flap: A triangular shape over the body -->
+    <path d="M104 160L256 256L408 160" stroke="#F0F0F0" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Plus Bubble: A green circle indicating "new" or "add" -->
+    <circle cx="392" cy="144" r="64" fill="#4CAF50" stroke="#FFFFFF" stroke-width="8"/>
+
+    <!-- Plus Sign: White, inside the green circle -->
+    <path d="M392 112V176M360 144H424" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  </g>
+</svg>
