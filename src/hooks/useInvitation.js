@@ -3,68 +3,35 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 
 const FIREBASE_URL = 'https://invites-75e19-default-rtdb.firebaseio.com'
 
-// Hardcoded fallback defaults (used when Firebase settings are not available)
-const fallbackDefaultFields = [
-  { id: 'title', type: 'title', value: 'You are Cordially Invited', visible: true, locked: true },
-  { id: 'subtitle', type: 'subtitle', value: 'To attend', visible: true, locked: true },
-  { id: 'event', type: 'event', value: '', placeholder: '[Event Name]', visible: true, required: true, locked: true },
-  { id: 'from', type: 'detail', value: '', label: 'From:', placeholder: '[Your Name/Organization]', visible: false },
-  { id: 'location', type: 'detail', value: '', label: 'Location:', placeholder: '[Venue/Address]', visible: true },
-  { id: 'date', type: 'detail', value: '', label: 'Date:', placeholder: '[Day, Month Date, Year]', visible: true },
-  { id: 'time', type: 'detail', value: '', label: 'Time:', placeholder: '[Start Time - End Time]', visible: true },
-  { id: 'dresscode', type: 'detail', value: '', label: 'Dress Code:', placeholder: '[Formal/Casual/etc]', visible: false },
-  { id: 'rsvp', type: 'detail', value: '', label: 'RSVP:', placeholder: '[Contact Information]', visible: false },
-  { id: 'footer', type: 'footer', value: '', placeholder: '[Additional Information]', visible: true, locked: true }
-]
-
-const fallbackProtectedFields = ['title', 'subtitle', 'event', 'footer']
-
-// Load default template from Firebase settings, falling back to hardcoded defaults
-const loadDefaultTemplate = async () => {
-  try {
-    const response = await fetch(`${FIREBASE_URL}/settings/defaultTemplate.json`)
-    if (response.ok) {
-      const template = await response.json()
-      if (template && Array.isArray(template.fields)) {
-        return template.fields
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to load default template from Firebase:', error)
+// Load settings from Firebase only - no fallbacks
+const loadSettings = async () => {
+  const [templateResponse, protectedResponse] = await Promise.all([
+    fetch(`${FIREBASE_URL}/settings/defaultTemplate.json`),
+    fetch(`${FIREBASE_URL}/settings/protectedFields.json`)
+  ])
+  
+  if (!templateResponse.ok || !protectedResponse.ok) {
+    throw new Error('Failed to load settings from Firebase')
   }
   
-  // Fallback to hardcoded defaults
-  return fallbackDefaultFields.map(f => ({ ...f }))
-}
-
-// Load protected fields from Firebase settings, falling back to hardcoded defaults
-const loadProtectedFields = async () => {
-  try {
-    const response = await fetch(`${FIREBASE_URL}/settings/protectedFields.json`)
-    if (response.ok) {
-      const protectedFields = await response.json()
-      if (Array.isArray(protectedFields)) {
-        return protectedFields
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to load protected fields from Firebase:', error)
+  const template = await templateResponse.json()
+  const protectedFields = await protectedResponse.json()
+  
+  if (!template || !Array.isArray(template.fields)) {
+    throw new Error('Invalid template structure in Firebase')
   }
   
-  // Fallback to hardcoded defaults
-  return [...fallbackProtectedFields]
-}
-
-// Create initial fields with Firebase defaults (async)
-const createInitialFields = async () => {
-  const defaultFields = await loadDefaultTemplate()
-  const protectedFields = await loadProtectedFields()
+  if (!Array.isArray(protectedFields)) {
+    throw new Error('Invalid protected fields structure in Firebase')
+  }
   
   // Apply protected status to fields
-  return defaultFields.map(field => ({
+  const fields = template.fields.map(field => ({
     ...field,
     locked: protectedFields.includes(field.id) || field.locked || false
   }))
+  
+  return fields
 }
 
 const hashInvite = (data) => {
@@ -82,9 +49,10 @@ export function useInvitation() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [loading, setLoading] = useState(true) // Always start loading to fetch defaults
+  const [loading, setLoading] = useState(true)
   const [sharing, setSharing] = useState(false)
   const [fields, setFields] = useState([])
+  const [error, setError] = useState(null)
   const isEditable = !id || location.pathname === '/create'
   const [notFound, setNotFound] = useState(false)
   const [toast, setToast] = useState(null)
@@ -96,18 +64,17 @@ export function useInvitation() {
         setNotFound(false)
         await fetchInvite(id)
       } else {
-        // Load default template from Firebase for new invitations
+        // Load settings from Firebase - no fallbacks
         setLoading(true)
+        setError(null)
         try {
-          const initialFields = await createInitialFields()
-          setFields(initialFields)
+          const fields = await loadSettings()
+          setFields(fields)
         } catch (error) {
-          console.error('Failed to load default template:', error)
-          // Fallback to hardcoded defaults
-          setFields(fallbackDefaultFields.map(f => ({ ...f })))
+          console.error('Failed to load settings from Firebase:', error)
+          setError('Unable to load invitation settings. Please try again later.')
         }
         setLoading(false)
-        setNotFound(false)
       }
     }
 
@@ -122,15 +89,20 @@ export function useInvitation() {
         if (data && data.fields) {
           setFields(data.fields)
         } else if (data) {
-          // Handle old format - convert to new array format
-          const convertedFields = await createInitialFields()
-          Object.keys(data).forEach(key => {
-            const field = convertedFields.find(f => f.id === key)
-            if (field && data[key]) {
-              Object.assign(field, data[key])
-            }
-          })
-          setFields(convertedFields)
+          // Handle old format - need to load settings to get field structure
+          try {
+            const defaultFields = await loadSettings()
+            Object.keys(data).forEach(key => {
+              const field = defaultFields.find(f => f.id === key)
+              if (field && data[key]) {
+                Object.assign(field, data[key])
+              }
+            })
+            setFields(defaultFields)
+          } catch (error) {
+            console.error('Failed to load settings for old format conversion:', error)
+            setNotFound(true)
+          }
         } else {
           setNotFound(true)
         }
@@ -193,6 +165,7 @@ export function useInvitation() {
     sharing,
     isEditable,
     notFound,
+    error,
     toast,
     setToast,
     updateField,

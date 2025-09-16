@@ -13,6 +13,7 @@ function InvitationEditor() {
     sharing,
     isEditable,
     notFound,
+    error,
     toast,
     setToast,
     updateField,
@@ -32,6 +33,15 @@ function InvitationEditor() {
     return (
       <div className="w-full max-w-lg mx-auto">
         <InvitationSkeleton />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-lg mx-auto p-8 text-center">
+        <div className="text-red-600 mb-2">⚠️</div>
+        <p className="text-gray-700">{error}</p>
       </div>
     )
   }
