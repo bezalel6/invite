@@ -30,7 +30,27 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (!data) {
-      throw new Error('Invitation not found');
+      // Return proper 404 for non-existent invitations
+      const html404 = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invitation Not Found</title>
+    <meta name="description" content="This invitation doesn't exist or may have been removed." />
+    <meta property="og:title" content="Invitation Not Found" />
+    <meta property="og:description" content="This invitation doesn't exist or may have been removed." />
+    <meta property="og:image" content="https://${req.headers.host}/logo_512x512.png" />
+    <meta property="og:url" content="https://${req.headers.host}/invite/${id}" />
+</head>
+<body>
+    <p>Invitation not found</p>
+</body>
+</html>`;
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.status(404).send(html404);
+      return;
     }
     
     // Extract and sanitize the data
@@ -54,22 +74,44 @@ export default async function handler(req, res) {
     
     const title = getFieldValue(data.title) || 'You are Cordially Invited';
     const event = getFieldValue(data.event) || 'Special Event';
+    const from = getFieldValue(data.from) || '';
     const location = getFieldValue(data.location) || '';
     const date = getFieldValue(data.date) || '';
     const time = getFieldValue(data.time) || '';
     const footer = getFieldValue(data.footer) || '';
     
-    // Build description
-    let description = `${event}`;
+    // Build more specific description based on available fields
+    let description = '';
+    
+    // Add event name
+    if (event && event !== 'Special Event') {
+      description = event;
+    }
+    
+    // Add from information if available
+    if (from) {
+      description = description ? `${description} - From ${from}` : `From ${from}`;
+    }
+    
+    // Add date and time
     if (date || time) {
-      description += ` - ${date}`;
-      if (time) description += ` at ${time}`;
+      const dateTime = date + (time ? ` at ${time}` : '');
+      description = description ? `${description} | ${dateTime}` : dateTime;
     }
+    
+    // Add location
     if (location) {
-      description += ` - ${location}`;
+      description = description ? `${description} | ${location}` : location;
     }
-    if (footer) {
-      description += `. ${footer}`;
+    
+    // Add footer if there's room
+    if (footer && description.length + footer.length < 150) {
+      description = description ? `${description}. ${footer}` : footer;
+    }
+    
+    // Ensure we have a description
+    if (!description) {
+      description = 'You are invited to a special event. Click to view details.';
     }
     
     // Truncate description for social media limits
@@ -148,6 +190,7 @@ export default async function handler(req, res) {
         <div class="spinner"></div>
         <h2>${escapeHtml(title)}</h2>
         <p>${escapeHtml(event)}</p>
+        ${from ? `<p>From: ${escapeHtml(from)}</p>` : ''}
         <p>Loading invitation details...</p>
     </div>
 </body>
