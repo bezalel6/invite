@@ -92,16 +92,20 @@ All text elements (including title, subtitle, and labels) are editable in create
 - CSS classes handle the seamless transition between states
 
 ### Social Media Preview Implementation
-Social media crawlers don't execute JavaScript, so:
-- Vercel Edge Function intercepts crawler requests
-- Fetches data server-side and generates static HTML with meta tags
-- Human visitors get the React SPA via rewrite
+Social media crawlers don't execute JavaScript, so the solution involves:
+- **Vercel rewrites** with user-agent detection in `vercel.json`
+- **API function** (`/api/og.js`) generates HTML with meta tags for crawlers
+- **Crawler detection** checks user-agent and returns 404 for non-bots (letting Vercel serve the React app)
+- **Human visitors** get the React SPA through catch-all rewrite rule
 
 ### URL Structure
 All URLs use path-based routing (`/invite/id`):
-- No hash routing anywhere in the application
-- Consistent URL format for sharing and navigation
-- Full SPA functionality with BrowserRouter
+- **No hash routing** - BrowserRouter handles all client-side routing
+- **Consistent URLs** - Same format for sharing and navigation
+- **Clean URLs** - No `#` symbols anywhere in the application
+
+### Critical Implementation Note
+The API function (`/api/og.js`) must return 404 for non-bot requests. Do NOT use `res.rewrite()` as it's not available in standard Vercel functions - this will cause a crash. The 404 response allows Vercel's catch-all rewrite rule to serve the React app properly.
 
 ## Known Edge Cases
 
