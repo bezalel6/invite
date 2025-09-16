@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "invites": {
+      ".read": true,
+      ".write": true,
+      "$inviteId": {
+        ".validate": "newData.hasChildren(['fields', 'createdAt'])",
+        "fields": {
+          "$fieldIndex": {
+            ".validate": "newData.hasChildren(['id', 'value', 'visible'])"
+          }
+        }
+      }
+    },
+    "settings": {
+      ".read": true,
+      ".write": "auth != null",
+      "defaultTemplate": {
+        ".validate": "newData.hasChildren(['fields'])",
+        "fields": {
+          "$fieldIndex": {
+            ".validate": "newData.hasChildren(['id', 'visible'])"
+          }
+        }
+      },
+      "protectedFields": {
+        ".validate": "newData.isString() || newData.parent().parent().child('protectedFields').val() != null"
+      }
+    }
+  }
+}

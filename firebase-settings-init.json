@@ -1,0 +1,89 @@
+{
+  "settings": {
+    "defaultTemplate": {
+      "fields": [
+        {
+          "id": "title",
+          "value": "You are Cordially Invited",
+          "label": "",
+          "placeholder": "Invitation Title",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "subtitle", 
+          "value": "To attend",
+          "label": "",
+          "placeholder": "Subtitle",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "event",
+          "value": "",
+          "label": "",
+          "placeholder": "[Event Name]",
+          "visible": true,
+          "editable": true,
+          "required": true
+        },
+        {
+          "id": "from",
+          "value": "",
+          "label": "From",
+          "placeholder": "[Your Name]",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "location",
+          "value": "",
+          "label": "Location:",
+          "placeholder": "[Venue/Address]",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "date",
+          "value": "",
+          "label": "Date:",
+          "placeholder": "[Event Date]",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "time",
+          "value": "",
+          "label": "Time:",
+          "placeholder": "[Event Time]",
+          "visible": true,
+          "editable": true
+        },
+        {
+          "id": "footer",
+          "value": "We look forward to seeing you!",
+          "label": "",
+          "placeholder": "Footer message",
+          "visible": true,
+          "editable": true
+        }
+      ],
+      "theme": {
+        "primaryColor": "#10b981",
+        "backgroundColor": "#ffffff",
+        "textColor": "#111827",
+        "cardBackground": "#f9fafb",
+        "borderRadius": "12px"
+      },
+      "lastUpdatedBy": "admin@example.com",
+      "lastUpdatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "protectedFields": ["title", "subtitle", "event", "footer"],
+    "features": {
+      "allowCustomFields": false,
+      "maxCustomFields": 3,
+      "requireEventName": true,
+      "allowEmptyFields": true
+    }
+  }
+}
